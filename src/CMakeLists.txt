@@ -4,6 +4,7 @@ target_sources(
     cpp3Dgraphics
     PRIVATE
         main.cpp
+        MainWindow.cpp
         ${CMAKE_SOURCE_DIR}/include/src/gl.c
 )
 
