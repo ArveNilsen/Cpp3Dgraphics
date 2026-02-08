@@ -4,11 +4,15 @@ target_sources(
     cpp3Dgraphics
     PRIVATE
         main.cpp
+        Application.cpp
         MainWindow.cpp
+        Shader.cpp
+        Camera.cpp
         ${CMAKE_SOURCE_DIR}/include/src/gl.c
 )
 
 find_package(glfw3 3.4 REQUIRED)
+find_package(glm REQUIRED)
 
 target_include_directories(
     cpp3Dgraphics
@@ -21,4 +25,5 @@ target_link_libraries(
     PRIVATE
         project_warnings
         glfw
+        glm::glm
 )
