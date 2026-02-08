@@ -5,7 +5,9 @@
 static constexpr int DEFAULT_WIDTH  = 800;
 static constexpr int DEFAULT_HEIGHT = 600;
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow() 
+    : window_handle_{ glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, "Cpp3Dgraphics", 
+            NULL, NULL) } {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -16,16 +18,14 @@ MainWindow::MainWindow() {
 
     // glfw window creation
     // --------------------
-    win_handle = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT, 
-            "Cpp3Dgraphics", NULL, NULL);
-    if (win_handle == NULL)
+    if (!window_handle_)
     {
         std::println("()", "Failed to create GLFW window");
         glfwTerminate();
         return;
     }
-    glfwMakeContextCurrent(win_handle);
-    glfwSetFramebufferSizeCallback(win_handle, framebuffer_size_callback);
+    glfwMakeContextCurrent(window_handle_.get());
+    glfwSetFramebufferSizeCallback(window_handle_.get(), framebuffer_size_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -35,9 +35,9 @@ MainWindow::MainWindow() {
         return;
     }    
 
-    glfwSetKeyCallback(win_handle, key_callback);
+    glfwSetKeyCallback(window_handle_.get(), key_callback);
     glfwSetErrorCallback(error_callback);
-    glfwSetFramebufferSizeCallback(win_handle, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window_handle_.get(), framebuffer_size_callback);
 }
 
 MainWindow::~MainWindow() {
@@ -45,11 +45,11 @@ MainWindow::~MainWindow() {
 }
 
 bool MainWindow::shouldClose() const noexcept {
-    return (glfwWindowShouldClose(win_handle));
+    return (glfwWindowShouldClose(window_handle_.get()));
 }
 
 void MainWindow::swapBuffers() const {
-    glfwSwapBuffers(win_handle);
+    glfwSwapBuffers(window_handle_.get());
 }
 
 void MainWindow::pollEvents() const {
