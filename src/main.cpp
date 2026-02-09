@@ -1,11 +1,12 @@
 #include "Application.hpp"
+#include "WindowConfig.hpp"
 #include "Window.hpp"
 
 int main() {
     Application app;
 
-    MainWindow::config();
-    MainWindow window;
+    WindowConfig wc;
+    MainWindow window(wc);
     window.loadShaders();
     while (!window.shouldClose())
     {

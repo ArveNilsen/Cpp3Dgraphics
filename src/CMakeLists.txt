@@ -4,6 +4,7 @@ target_sources(
     cpp3Dgraphics
     PRIVATE
         main.cpp
+        WindowConfig_glfw.cpp
         Application.cpp
         Window_glfw.cpp
         Shader.cpp

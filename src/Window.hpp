@@ -2,10 +2,12 @@
 
 #include <memory>
 
+struct WindowConfig;
+
 class MainWindow final
 {
 public:
-    MainWindow();
+    MainWindow(WindowConfig& window_config);
     ~MainWindow();
 
     static void config() noexcept;

@@ -3,11 +3,11 @@
 
 #include <print>
 
+#include "WindowConfig.hpp"
 #include "Window.hpp"
 #include "Geometry.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
-
 
 namespace {
 // static trampolines for callbacks
@@ -20,13 +20,11 @@ static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 
 } // anon namespace
 
-
 struct Window_glfw
 {
-    Window_glfw() : window{ glfwCreateWindow(
-            MainWindow::SCR_WIDTH, 
-            MainWindow::SCR_HEIGHT, "Cpp3Dgraphics",
-            nullptr, nullptr) } {}
+    Window_glfw(int width, int height, const std::string& title)
+        : window { glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr) }
+    {}
 
     ~Window_glfw()
     {
@@ -48,7 +46,9 @@ struct Window_glfw
 
 struct MainWindow::Impl
 {
-    Impl() : window_context{}
+    Impl(WindowConfig& window_config) 
+        : wc {window_config}, 
+        window_context{ wc. width_, wc.height_, wc.title_ }
     {
         if (!window_context.window)
         {
@@ -230,7 +230,7 @@ struct MainWindow::Impl
         camera.ProcessMouseScroll(static_cast<float>(yoffset));
     }
 
-
+    WindowConfig& wc;
     Window_glfw window_context;
     float deltaTime = 0;
     float lastFrame = 0;
@@ -245,8 +245,8 @@ struct MainWindow::Impl
 
 };
 
-MainWindow::MainWindow() 
-    : pImpl{std::make_unique<Impl>()} 
+MainWindow::MainWindow(WindowConfig& window_config) 
+    : pImpl{std::make_unique<Impl>(window_config)} 
 {
 }
 
@@ -254,17 +254,6 @@ MainWindow::~MainWindow() = default;
 
 bool MainWindow::shouldClose() const noexcept {
     return pImpl->shouldClose();
-}
-
-// TODO: Move this into a config object
-void MainWindow::config() noexcept {
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 }
 
 void MainWindow::render() {
