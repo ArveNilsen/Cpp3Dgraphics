@@ -2,23 +2,14 @@
 #include <GLFW/glfw3.h>
 
 #include <print>
+#include <bitset>
 
 #include "WindowConfig.hpp"
 #include "Window.hpp"
+#include "Input.hpp"
 #include "Geometry.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
-
-namespace {
-// static trampolines for callbacks
-static void key_callback(GLFWwindow* window, int key, int scancode, 
-        int action, int mods);
-static void error_callback(int error, const char* description);
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
-
-} // anon namespace
 
 struct Window_glfw
 {
@@ -44,31 +35,18 @@ struct Window_glfw
     GLFWwindow* window;
 };
 
-struct MainWindow::Impl
+struct Window::Impl
 {
     Impl(WindowConfig& window_config) 
-        : wc {window_config}, 
-        window_context{ wc. width_, wc.height_, wc.title_ }
+        : wc {window_config},
+        window_context{ wc. width_, wc.height_, wc.title_ },
+        inputState{},
+        input{ window_context.window, inputState }
     {
         if (!window_context.window)
         {
             throw std::runtime_error("Failed to create GLFW window");
         }
-
-        glfwMakeContextCurrent(window_context.window);
-        
-        glfwSetWindowUserPointer(window_context.window, this);
-
-        // register the callback trampolines
-        glfwSetFramebufferSizeCallback(window_context.window, framebuffer_size_callback);
-        glfwSetKeyCallback(window_context.window, &key_callback);
-        glfwSetErrorCallback(error_callback);
-        glfwSetFramebufferSizeCallback(window_context.window, framebuffer_size_callback);
-        glfwSetCursorPosCallback(window_context.window, mouse_callback);
-        glfwSetScrollCallback(window_context.window, scroll_callback);
-
-        // enable mouse movement
-        glfwSetInputMode(window_context.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         // glad: load all OpenGL function pointers
         if (!gladLoadGL(glfwGetProcAddress))
@@ -83,43 +61,25 @@ struct MainWindow::Impl
     ~Impl() = default;
 
     bool shouldClose() noexcept {
-        return (glfwWindowShouldClose(window_context.window));
+        if (isClosing)
+        {
+            glfwSetWindowUserPointer(window_context.window, nullptr);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     void swapBuffers() const noexcept {
         glfwSwapBuffers(window_context.window);
     }
 
-    void pollEvents() const noexcept {
-        glfwPollEvents();
-    }
-
-    void onKey(int key, int scancode, int action, int mods)
+    void tick()
     {
-        (void)scancode;
-        (void)mods;
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-            glfwSetWindowShouldClose(window_context.window, true);
-
-#if 0
-        if (key == GLFW_KEY_W && action == GLFW_PRESS)
-            //camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
-        if (key == GLFW_KEY_S && action == GLFW_PRESS)
-            //camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
-        if (key == GLFW_KEY_A && action == GLFW_PRESS)
-            //camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
-        if (key == GLFW_KEY_D && action == GLFW_PRESS)
-            //camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
-#endif
-    }
-
-    void onSize(int width, int height)
-    {
-        glViewport(0, 0, width, height);
-    }
-
-    void render()
-    {
+        // reset input data
+        input.beginFrame();
         // time logic
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -151,7 +111,6 @@ struct MainWindow::Impl
         glBindVertexArray(cubeVAO_);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-
         // also draw the lamp object
         lightCubeShader_.use();
         lightCubeShader_.setMat4("projection", projection);
@@ -165,7 +124,13 @@ struct MainWindow::Impl
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         swapBuffers();
-        pollEvents();
+        glfwPollEvents();
+        updateCamera();
+        // handle events
+        if (inputState.closeRequested())
+        {
+            isClosing = true;
+        }
     }
 
     void setVertexData()
@@ -203,35 +168,24 @@ struct MainWindow::Impl
         lightCubeShader_.loadShaders( "lightCube_vert.glsl", "lightCube_frag.glsl" );
     }
 
-    void onMouse(double xposIn, double yposIn)
+    void updateCamera()
     {
-        float xpos = static_cast<float>(xposIn);
-        float ypos = static_cast<float>(yposIn);
+        if (inputState.keyDown(InputState::KEY::W))
+            camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
+        if (inputState.keyDown(InputState::KEY::S))
+            camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
+        if (inputState.keyDown(InputState::KEY::A))
+            camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
+        if (inputState.keyDown(InputState::KEY::D))
+            camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
 
-        if (firstMouse)
-        {
-            lastX = xpos;
-            lastY = ypos;
-            firstMouse = false;
-        }
-
-        float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-        lastX = xpos;
-        lastY = ypos;
-
-        camera.ProcessMouseMovement(xoffset, yoffset);
-    }
-
-    void onScroll(double xoffset, double yoffset)
-    {  
-        (void)xoffset;
-        camera.ProcessMouseScroll(static_cast<float>(yoffset));
+        camera.ProcessMouseMovement(inputState.mouseDeltaX, inputState.mouseDeltaY);
     }
 
     WindowConfig& wc;
     Window_glfw window_context;
+    InputState inputState;
+    Input input;
     float deltaTime = 0;
     float lastFrame = 0;
     unsigned int VBO_, cubeVAO_, lightCubeVAO_;
@@ -241,131 +195,27 @@ struct MainWindow::Impl
     glm::vec3 lightPos{1.2f, 1.0f, 2.0f};
     float lastX = SCR_WIDTH / 2.0f;
     float lastY = SCR_HEIGHT / 2.0f;
-    bool firstMouse = true;
-
+    bool isClosing = false;
 };
 
-MainWindow::MainWindow(WindowConfig& window_config) 
+Window::Window(WindowConfig& window_config) 
     : pImpl{std::make_unique<Impl>(window_config)} 
-{
-}
+{}
 
-MainWindow::~MainWindow() = default;
+Window::~Window() = default;
 
-bool MainWindow::shouldClose() const noexcept {
+bool Window::shouldClose() const noexcept {
     return pImpl->shouldClose();
 }
 
-void MainWindow::render() {
-    pImpl->render();
+void Window::tick() {
+    pImpl->tick();
 }
 
-void MainWindow::loadShaders() {
+void Window::loadShaders() {
     pImpl->loadShaders();
 }
 
-void MainWindow::setVertexData() noexcept {
+void Window::setVertexData() noexcept {
     pImpl->setVertexData();
 }
-
-void MainWindow::onKey(
-        int key, 
-        int scancode, 
-        int action, 
-        int mods) 
-{
-    pImpl->onKey(key, scancode, action, mods);
-}
-
-void MainWindow::onSize(
-        int width, 
-        int height)
-{
-    pImpl->onSize(width, height);
-}
-
-void MainWindow::onMouse(
-        double xposIn, 
-        double yposIn)
-{
-    pImpl->onMouse(xposIn, yposIn);
-}
-
-void MainWindow::onScroll(
-        double xoffset, 
-        double yoffset) 
-{
-    pImpl->onScroll(xoffset, yoffset);
-}
-
-namespace {
-// Implementations of the trampoline callbacks
-void key_callback(
-        GLFWwindow* window, 
-        int key, 
-        int scancode, 
-        int action, 
-        int mods) 
-{
-    auto* self = 
-        static_cast<MainWindow*>(glfwGetWindowUserPointer(window));
-
-    if (!self) {
-        return;
-    }
-
-    self->onKey(key, scancode, action, mods);
-}
-
-void error_callback(
-        int error, 
-        const char* description) 
-{
-    std::println("{}: {}", error, description);
-}
-
-void framebuffer_size_callback(
-        GLFWwindow* window, 
-        int width, 
-        int height) 
-{
-    auto* self = 
-        static_cast<MainWindow*>(glfwGetWindowUserPointer(window));
-
-    if (!self) {
-        return;
-    }
-
-    self->onSize(width, height);
-}
-
-void mouse_callback(GLFWwindow* window, 
-        double xposIn, 
-        double yposIn) 
-{
-
-    auto* self = 
-        static_cast<MainWindow*>(glfwGetWindowUserPointer(window));
-
-    if (!self) {
-        return;
-    }
-
-    self->onMouse(xposIn, yposIn);
-}
-
-void scroll_callback(
-        GLFWwindow* window, 
-        double xoffset, 
-        double yoffset) 
-{
-    auto* self = 
-        static_cast<MainWindow*>(glfwGetWindowUserPointer(window));
-
-    if (!self) {
-        return;
-    }
-
-    self->onScroll(xoffset, yoffset);
-}
-} // anon namespace

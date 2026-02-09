@@ -6,13 +6,13 @@ int main() {
     Application app;
 
     WindowConfig wc;
-    MainWindow window(wc);
+    Window window(wc);
     window.loadShaders();
+    window.setVertexData();
     while (!window.shouldClose())
     {
-        window.render();
+        window.tick();
     }
 
     return 0;
 }
-

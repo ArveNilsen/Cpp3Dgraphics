@@ -4,17 +4,17 @@
 
 struct WindowConfig;
 
-class MainWindow final
+class Window final
 {
 public:
-    MainWindow(WindowConfig& window_config);
-    ~MainWindow();
+    Window(WindowConfig& window_config);
+    ~Window();
 
     static void config() noexcept;
 
     bool shouldClose() const noexcept;
 
-    void render();
+    void tick();
 
     void setVertexData() noexcept;
     void loadShaders();
