@@ -1,16 +1,14 @@
 #include "Application.hpp"
-#include "MainWindow.hpp"
+#include "Window.hpp"
 
 int main() {
     Application app;
 
     MainWindow::config();
     MainWindow window;
-    window.setup();
     window.loadShaders();
     while (!window.shouldClose())
     {
-        window.time();
         window.render();
     }
 

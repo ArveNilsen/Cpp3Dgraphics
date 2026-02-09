@@ -5,7 +5,7 @@ target_sources(
     PRIVATE
         main.cpp
         Application.cpp
-        MainWindow.cpp
+        Window_glfw.cpp
         Shader.cpp
         Camera.cpp
         ${CMAKE_SOURCE_DIR}/include/src/gl.c
