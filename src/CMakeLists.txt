@@ -7,6 +7,7 @@ target_sources(
         WindowConfig_glfw.cpp
         Application.cpp
         Window_glfw.cpp
+        VertexArray_gl.cpp
         Shader.cpp
         Camera.cpp
         ${CMAKE_SOURCE_DIR}/include/src/gl.c

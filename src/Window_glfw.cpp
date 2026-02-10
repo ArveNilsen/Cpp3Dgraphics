@@ -7,6 +7,7 @@
 #include "WindowConfig.hpp"
 #include "Window.hpp"
 #include "Input.hpp"
+#include "VertexArray.hpp"
 #include "Geometry.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
@@ -108,7 +109,7 @@ struct Window::Impl
         lightingShader_.setMat4("model", model);
 
         // render the cube
-        glBindVertexArray(cubeVAO_);
+        cubeVAO_.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // also draw the lamp object
@@ -120,7 +121,7 @@ struct Window::Impl
         model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
         lightCubeShader_.setMat4("model", model);
 
-        glBindVertexArray(lightCubeVAO_);
+        lightCubeVAO_.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         swapBuffers();
@@ -135,16 +136,18 @@ struct Window::Impl
 
     void setVertexData()
     {
-        glGenVertexArrays(1, &cubeVAO_);
+        cubeVAO_.create();
         glGenBuffers(1, &VBO_);
 
+
+        cubeVAO_.bind();
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO_);
         glBufferData(GL_ARRAY_BUFFER, 
                 static_cast<GLsizeiptr>(vertices_.size() * sizeof(float)),
                 vertices_.data(), GL_STATIC_DRAW);
 
-        glBindVertexArray(cubeVAO_);
+        cubeVAO_.bind();
 
         // position
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(0));
@@ -154,8 +157,8 @@ struct Window::Impl
                 reinterpret_cast<void*>(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
-        glGenVertexArrays(1, &lightCubeVAO_);
-        glBindVertexArray(lightCubeVAO_);
+        lightCubeVAO_.create();
+        lightCubeVAO_.bind();
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO_);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(0));
@@ -188,7 +191,8 @@ struct Window::Impl
     Input input;
     float deltaTime = 0;
     float lastFrame = 0;
-    unsigned int VBO_, cubeVAO_, lightCubeVAO_;
+    unsigned int VBO_;
+    VertexArray cubeVAO_, lightCubeVAO_;
     Shader lightingShader_;
     Shader lightCubeShader_;
     Camera camera{glm::vec3(0.0f, 0.0f, 3.0f)};
