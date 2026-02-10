@@ -8,6 +8,7 @@
 #include "Window.hpp"
 #include "Input.hpp"
 #include "VertexArray.hpp"
+#include "VertexBuffer.hpp"
 #include "Geometry.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
@@ -137,32 +138,50 @@ struct Window::Impl
     void setVertexData()
     {
         cubeVAO_.create();
-        glGenBuffers(1, &VBO_);
-
-
-        cubeVAO_.bind();
-
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-        glBufferData(GL_ARRAY_BUFFER, 
-                static_cast<GLsizeiptr>(vertices_.size() * sizeof(float)),
-                vertices_.data(), GL_STATIC_DRAW);
+        VBO_.create();
 
         cubeVAO_.bind();
+        VBO_.bind();
+
+        VBO_.setData(std::as_bytes(std::span(Geometry::vertices)));
 
         // position
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(0));
-        glEnableVertexAttribArray(0);
+        cubeVAO_.setAttrib(
+                VBO_,
+                0,
+                3,
+                8 * sizeof(float),
+                0
+        );
+
         // normal
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
-                reinterpret_cast<void*>(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
+        cubeVAO_.setAttrib(
+                VBO_,
+                1,
+                3,
+                8 * sizeof(float),
+                3 * sizeof(float)
+        );
+        // texcoord
+        cubeVAO_.setAttrib(
+                VBO_,
+                2,
+                2,
+                8 * sizeof(float),
+                6 * sizeof(float)
+        );
 
         lightCubeVAO_.create();
         lightCubeVAO_.bind();
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(0));
-        glEnableVertexAttribArray(0);
+        VBO_.bind();
+        lightCubeVAO_.setAttrib(
+                VBO_,
+                0,
+                3,
+                8 * sizeof(float),
+                0
+        );
     }
 
     void loadShaders()
@@ -191,7 +210,7 @@ struct Window::Impl
     Input input;
     float deltaTime = 0;
     float lastFrame = 0;
-    unsigned int VBO_;
+    VertexBuffer VBO_;
     VertexArray cubeVAO_, lightCubeVAO_;
     Shader lightingShader_;
     Shader lightCubeShader_;

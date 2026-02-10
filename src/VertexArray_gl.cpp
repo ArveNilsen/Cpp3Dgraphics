@@ -2,6 +2,8 @@
 
 #include "VertexArray.hpp"
 
+class VertexBuffer;
+
 struct VertexArray::Impl
 {
     Impl() = default;
@@ -22,6 +24,26 @@ struct VertexArray::Impl
 
     void bind() noexcept { glBindVertexArray(id); }
     void unbind() noexcept { glBindVertexArray(0); }
+
+    void setAttrib(
+            const VertexBuffer& vertexBuffer, 
+            std::uint32_t index, 
+            int components, 
+            std::size_t strideBytes, 
+            std::uintptr_t offsetBytes)
+    {
+        (void)vertexBuffer;
+        glVertexAttribPointer(
+                index,
+                components,
+                GL_FLOAT,
+                GL_FALSE,
+                static_cast<GLsizei>(strideBytes),
+                reinterpret_cast<const void*>(offsetBytes)
+        );
+
+        glEnableVertexAttribArray(index);
+    }
     
     GLuint id { 0 };
 };
@@ -38,3 +60,17 @@ void VertexArray::create() noexcept { return pImpl->create(); }
 void VertexArray::destroy() noexcept { return pImpl->destroy(); }
 void VertexArray::bind() noexcept { return pImpl->bind(); }
 void VertexArray::unbind() noexcept { return pImpl->unbind(); }
+void VertexArray::setAttrib(
+            const VertexBuffer& vertexBuffer, 
+            std::uint32_t index, 
+            int components, 
+            std::size_t strideBytes, 
+            std::uintptr_t offsetBytes)
+{
+    return pImpl->setAttrib(
+            vertexBuffer,
+            index,
+            components,
+            strideBytes,
+            offsetBytes);
+}

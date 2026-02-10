@@ -2,6 +2,8 @@
 
 #include <memory>
 
+class VertexBuffer;
+
 class VertexArray
 {
 public:
@@ -14,6 +16,12 @@ public:
     void destroy() noexcept;
     void bind() noexcept;
     void unbind() noexcept;
+    void setAttrib(
+            const VertexBuffer&, 
+            std::uint32_t index, 
+            int components, 
+            std::size_t strideBytes, 
+            std::uintptr_t offsetBytes);
 
 private:
     struct Impl;
