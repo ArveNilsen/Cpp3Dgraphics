@@ -1,0 +1,46 @@
+digraph Arch {
+    subgraph cluster_platform {
+        label="Platform"
+        subgraph cluster_glfw {
+            label="GLFW"
+            WindowConfig_glfw
+            Window_glfw
+            Input
+        }
+        Window -> WindowConfig
+        WindowConfig -> WindowConfig_glfw
+        Window -> Window_glfw
+        Window -> Input
+        Window -> InputState
+    }
+
+    subgraph cluster_graphics {
+        label="Graphics"
+        subgraph cluster_gl {
+            label="OpenGL"
+            Renderer_gl
+            Shader_gl
+            Mesh_gl
+        }
+
+        Renderer -> Renderer_gl
+        Shader -> Shader_gl
+        Mesh -> Mesh_gl
+    }
+
+    subgraph cluster_assets {
+        label="Assets"
+        subgraph cluster_stbi {
+            label="stbi.h"
+            LoadTexture
+        }
+
+        AssetManager -> LoadTexture
+    }
+
+    Application -> Window
+    Application -> Renderer
+    Application -> Shader
+    Application -> Mesh
+    Application -> AssetManager
+}
