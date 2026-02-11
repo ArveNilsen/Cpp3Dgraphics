@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "InputState.hpp"
 
 struct WindowConfig;
 
@@ -10,14 +11,7 @@ public:
     Window(WindowConfig& window_config);
     ~Window();
 
-    static void config() noexcept;
-
     bool shouldClose() const noexcept;
-
-    void tick();
-
-    void setVertexData() noexcept;
-    void loadShaders();
 
     static constexpr int SCR_WIDTH  = 800;
     static constexpr int SCR_HEIGHT = 600;
@@ -27,6 +21,15 @@ public:
     void onSize(int width, int height);
     void onScroll(double xoffset, double yoffset);
     void onMouse(double xposIn, double yposIn);
+
+    double getTime() const noexcept;
+    void swapBuffers() const noexcept;
+    void pollEvents() const noexcept;
+
+    void requestClose();
+
+    const InputState& input() const noexcept;
+    InputState snapshotInput() const noexcept;
 
 private:
     struct Impl;
