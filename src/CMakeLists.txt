@@ -1,5 +1,26 @@
 add_executable(cpp3Dgraphics)
 
+add_library(ImageLoader)
+
+target_sources(
+    ImageLoader
+    PRIVATE
+        ImageLoader.cpp
+)
+
+target_include_directories(
+    ImageLoader
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_options(
+    ImageLoader
+    PRIVATE
+        -Wall
+        -O3
+)
+
 target_sources(
     cpp3Dgraphics
     PRIVATE
@@ -7,6 +28,7 @@ target_sources(
         WindowConfig_glfw.cpp
         Application.cpp
         Window_glfw.cpp
+        Renderer_gl.cpp
         VertexArray_gl.cpp
         VertexBuffer_gl.cpp
         Shader.cpp
@@ -29,4 +51,5 @@ target_link_libraries(
         project_warnings
         glfw
         glm::glm
+        ImageLoader
 )
