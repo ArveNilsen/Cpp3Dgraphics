@@ -26,6 +26,8 @@ digraph Arch {
         Renderer -> Renderer_gl
         Shader -> Shader_gl
         Mesh -> Mesh_gl
+        Renderer -> Mesh
+        Renderer -> Shader
     }
 
     subgraph cluster_assets {
@@ -40,7 +42,5 @@ digraph Arch {
 
     Application -> Window
     Application -> Renderer
-    Application -> Shader
-    Application -> Mesh
     Application -> AssetManager
 }

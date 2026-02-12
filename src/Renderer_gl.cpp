@@ -96,8 +96,20 @@ struct Renderer::Impl
 
     void loadShaders()
     {
-        lightingShader_.loadShaders( "lighting_vert.glsl", "lighting_frag.glsl" );
-        lightCubeShader_.loadShaders( "lightCube_vert.glsl", "lightCube_frag.glsl" );
+        lightingShader_.loadShaders(
+                "assets/4.1lighting_maps_diffuse_map_vert.glsl", 
+                "assets/4.1lighting_maps_diffuse_map_frag.glsl");
+        lightCubeShader_.loadShaders(
+                "assets/3.1light_cube_vert.glsl", 
+                "assets/3.1light_cube_frag.glsl" );
+
+        const std::string diffuseMapFile { "assets/container2.png" };
+        auto diffuseMapAttempt = ImageLoader::loadTexture(diffuseMapFile);
+
+        if (diffuseMapAttempt)
+            diffuseMap = *diffuseMapAttempt;
+        else
+            std::println("Error uploading texture: {}", diffuseMapAttempt.error());
     }
 
     void setVertexData()
@@ -108,14 +120,14 @@ struct Renderer::Impl
         cubeVAO_.bind();
         VBO_.bind();
 
-        VBO_.setData(std::as_bytes(std::span(Geometry::basic_light_vertices)));
+        VBO_.setData(std::as_bytes(std::span(Geometry::vertices)));
 
         // position
         cubeVAO_.setAttrib(
                 VBO_,
                 0,
                 3,
-                6 * sizeof(float),
+                8 * sizeof(float),
                 0
         );
 
@@ -124,19 +136,18 @@ struct Renderer::Impl
                 VBO_,
                 1,
                 3,
-                6 * sizeof(float),
+                8 * sizeof(float),
                 3 * sizeof(float)
         );
-#if 0
+        
         // texcoord
         cubeVAO_.setAttrib(
                 VBO_,
                 2,
                 2,
-                6 * sizeof(float),
+                8 * sizeof(float),
                 6 * sizeof(float)
         );
-#endif
 
         lightCubeVAO_.create();
         lightCubeVAO_.bind();
@@ -146,7 +157,7 @@ struct Renderer::Impl
                 VBO_,
                 0,
                 3,
-                6 * sizeof(float),
+                8 * sizeof(float),
                 0
         );
     }
