@@ -1,4 +1,3 @@
-#include <string>
 #include <fstream>
 #include <iterator>
 #include <print>
@@ -51,7 +50,7 @@ void Shader::loadShaders(const std::string& vertexPath, const std::string& fragm
 
 void Shader::checkCompileErrors(unsigned int shader, std::string_view type) const noexcept {
     int success;
-    char infoLog[INFOLOG_SIZE];
+    char infoLog[INFOLOG_SIZE] = { 0 };
     
     if (type != "PROGRAM") {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
