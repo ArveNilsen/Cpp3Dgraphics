@@ -7,23 +7,22 @@
 #include "Shader.hpp"
 #include "Camera.hpp"
 
-#include <GLFW/glfw3.h>
+#include "ImageLoader.hpp"
+#include "TextureHandle.hpp"
+
 #include <glad/gl.h>
+
+#include <print>
 
 struct Renderer::Impl
 {
-    Impl(const Window& window)
-        : window_{ window }
+    Impl(const Window& window, const Camera& camera)
+        : window_{ window },
+        camera_{ camera }
     {}
 
     void init()
     {
-        // glad: load all OpenGL function pointers
-        if (!gladLoadGL(glfwGetProcAddress))
-        {
-            throw std::runtime_error("Failed to initialize GLAD");
-        }    
-
         // z-buffer?
         glEnable(GL_DEPTH_TEST);
 

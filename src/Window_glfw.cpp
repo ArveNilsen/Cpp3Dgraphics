@@ -3,6 +3,7 @@
 #include "Input.hpp"
 #include "InputState.hpp"
 
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 struct Window_glfw
@@ -41,6 +42,12 @@ struct Window::Impl
         {
             throw std::runtime_error("Failed to create GLFW window");
         }
+        
+        // glad: load all OpenGL function pointers
+        if (!gladLoadGL(glfwGetProcAddress))
+        {
+            throw std::runtime_error("Failed to initialize GLAD");
+        }    
     }
 
     ~Impl() = default;
