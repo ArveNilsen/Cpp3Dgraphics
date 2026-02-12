@@ -10,6 +10,7 @@ namespace ImageLoader {
 std::expected<TextureHandle, std::string> loadTexture(const std::string& path)
 {
     TextureHandle textureHandle;
+    glGenTextures(1, &textureHandle.id);
     int width, height, nrComponents;
     unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
 

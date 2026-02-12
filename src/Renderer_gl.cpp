@@ -48,13 +48,12 @@ struct Renderer::Impl
         lightingShader_.setVec3("viewPos", camera_.Position);
 
         // light properties
-        lightingShader_.setVec3("light.ambient", 0.3f, 0.2f, 0.2f);
+        lightingShader_.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
         lightingShader_.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         lightingShader_.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
         // material properties
-        lightingShader_.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        lightingShader_.setFloat("material.shininess", 32.0f);
+        lightingShader_.setFloat("material.shininess", 64.0f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(
@@ -72,6 +71,9 @@ struct Renderer::Impl
         // bind diffuse map
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap.id);
+        // bind specular map
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap.id);
 
         // render the cube
         cubeVAO_.bind();
@@ -98,18 +100,29 @@ struct Renderer::Impl
     {
         lightingShader_.loadShaders(
                 "assets/4.1lighting_maps_diffuse_map_vert.glsl", 
-                "assets/4.1lighting_maps_diffuse_map_frag.glsl");
+                "assets/4.2lighting_maps_specular_map_frag.glsl");
         lightCubeShader_.loadShaders(
                 "assets/3.1light_cube_vert.glsl", 
                 "assets/3.1light_cube_frag.glsl" );
 
         const std::string diffuseMapFile { "assets/container2.png" };
         auto diffuseMapAttempt = ImageLoader::loadTexture(diffuseMapFile);
-
         if (diffuseMapAttempt)
             diffuseMap = *diffuseMapAttempt;
         else
             std::println("Error uploading texture: {}", diffuseMapAttempt.error());
+
+        const std::string specularMapFile { "assets/container2_specular.png" };
+        auto specularMapAttempt = ImageLoader::loadTexture(specularMapFile);
+        if (specularMapAttempt)
+            specularMap = *specularMapAttempt;
+        else
+            std::println("Error uploading texture: {}", specularMapAttempt.error());
+
+        // Pre-configure shader
+        lightingShader_.use();
+        lightingShader_.setInt("material.diffuse", 0);
+        lightingShader_.setInt("material.specular", 1);
     }
 
     void setVertexData()
@@ -173,6 +186,7 @@ struct Renderer::Impl
     const Camera& camera_;
     glm::vec3 lightPos{1.2f, 1.0f, 2.0f};
     TextureHandle diffuseMap { 0 };
+    TextureHandle specularMap { 0 };
 };
 
 Renderer::Renderer(const Window& window, const Camera& camera)
