@@ -39,26 +39,30 @@ struct Renderer::Impl
 
     void renderFrame()
     {
-        float currentFrame = static_cast<float>(window_.getTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
         // Clear background
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         // activate shader before setting uniforms
         lightingShader_.use();
-        lightingShader_.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-        lightingShader_.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        lightingShader_.setVec3("lightPos", lightPos);
+        lightingShader_.setVec3("light.position", lightPos);
+        lightingShader_.setVec3("viewPos", camera_.Position);
+
+        // light properties
+        lightingShader_.setVec3("light.ambient", 0.3f, 0.2f, 0.2f);
+        lightingShader_.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        lightingShader_.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+        // material properties
+        lightingShader_.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        lightingShader_.setFloat("material.shininess", 32.0f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(
-                glm::radians(camera.Zoom), 
+                glm::radians(camera_.Zoom), 
                 static_cast<float>(800) / static_cast<float>(600), 
                 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 view = camera_.GetViewMatrix();
         lightingShader_.setMat4("projection", projection);
         lightingShader_.setMat4("view", view);
 
@@ -66,17 +70,14 @@ struct Renderer::Impl
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader_.setMat4("model", model);
 
+        // bind diffuse map
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap.id);
+
         // render the cube
         cubeVAO_.bind();
-        int vao;
-        int currId;
-        int enabled;
-        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &vao);
-        currId = static_cast<int>(cubeVAO_.getId());
-        assert(vao == currId);
-        glGetVertexAttribiv(0, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
-        assert(enabled == 1);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
         // also draw the lamp object
         lightCubeShader_.use();
         lightCubeShader_.setMat4("projection", projection);
@@ -87,11 +88,6 @@ struct Renderer::Impl
         lightCubeShader_.setMat4("model", model);
 
         lightCubeVAO_.bind();
-        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &vao);
-        currId = static_cast<int>(lightCubeVAO_.getId());
-        assert(vao == currId);
-        glGetVertexAttribiv(0, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
-        assert(enabled == 1);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
@@ -164,12 +160,13 @@ struct Renderer::Impl
     Shader lightCubeShader_;
     VertexBuffer VBO_;
     VertexArray cubeVAO_, lightCubeVAO_;
-    Camera camera;
+    const Camera& camera_;
     glm::vec3 lightPos{1.2f, 1.0f, 2.0f};
+    TextureHandle diffuseMap { 0 };
 };
 
-Renderer::Renderer(const Window& window)
-    : pImpl{ std::make_unique<Impl>(window) }
+Renderer::Renderer(const Window& window, const Camera& camera)
+    : pImpl{ std::make_unique<Impl>(window, camera) }
 {}
 
 Renderer::~Renderer() = default;
@@ -192,3 +189,4 @@ void Renderer::renderFrame()
 
 void Renderer::shutdown()
 {}
+

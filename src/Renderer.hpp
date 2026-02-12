@@ -4,6 +4,7 @@
 
 class Window;
 class Mesh;
+class Camera;
 
 // TODO: Consider using a slot-map
 struct MeshHandle
@@ -15,7 +16,7 @@ struct MeshHandle
 class Renderer
 {
 public:
-    Renderer(const Window& window);
+    Renderer(const Window& window, const Camera& camera);
     ~Renderer();
 
     void init();

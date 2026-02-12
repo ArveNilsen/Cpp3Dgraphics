@@ -31,6 +31,8 @@ public:
     const InputState& input() const noexcept;
     InputState snapshotInput() const noexcept;
 
+    void*
+
 private:
     struct Impl;
     std::unique_ptr<Impl> pImpl;

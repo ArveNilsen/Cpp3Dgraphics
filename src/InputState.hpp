@@ -33,7 +33,7 @@ struct InputState
         return keys.test(0);
     }
 
-    bool keyDown(KEY key)
+    bool keyDown(KEY key) const noexcept
     {
         switch (key) {
         case KEY::Q:
