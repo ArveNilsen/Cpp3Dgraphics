@@ -38,6 +38,7 @@ target_sources(
 
 find_package(glfw3 3.4 REQUIRED)
 find_package(glm REQUIRED)
+find_package(assimp REQUIRED)
 
 target_include_directories(
     cpp3Dgraphics
@@ -52,4 +53,5 @@ target_link_libraries(
         glfw
         glm::glm
         ImageLoader
+        assimp
 )
