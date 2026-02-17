@@ -1,21 +1,21 @@
 add_executable(cpp3Dgraphics)
 
-add_library(ImageLoader)
+add_library(stbi)
 
 target_sources(
-    ImageLoader
+    stbi
     PRIVATE
-        ImageLoader.cpp
+        stb_image.cpp
 )
 
 target_include_directories(
-    ImageLoader
+    stbi
     PRIVATE
         ${CMAKE_SOURCE_DIR}/include
 )
 
 target_compile_options(
-    ImageLoader
+    stbi
     PRIVATE
         -Wall
         -O3
@@ -52,6 +52,6 @@ target_link_libraries(
         project_warnings
         glfw
         glm::glm
-        ImageLoader
+        stbi
         assimp
 )
